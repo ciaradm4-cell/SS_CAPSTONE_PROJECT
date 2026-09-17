@@ -383,7 +383,7 @@ def CreateAllSky( datafile, mulitple_files, rcumode, calx, caly, xpos, ypos, fre
     #create a mask for the all sky image
     mask = np.ones((len(l),len(m)))
     dist = np.sqrt(np.square(np.meshgrid(l)) + np.square(np.matrix(np.meshgrid(m)).H))
-    mask[dist >= 1] = np.NaN
+    mask[dist >= 1] = np.nan
 
     if process_x == True:
       acccal = np.conj(np.outer(np.matrix(calx[:,subband]), np.matrix(calx[:,subband]).H )) * acc[::2, ::2]

@@ -68,8 +68,9 @@ def onaxesleave(event): # Callbacks only work on the last plot made
         event.canvas.draw()
 
 def get_matplotlib_ver(): # convert the string version to a number for comparison
-    ver_str = mpl.__version__
-    ver_num = int(ver_str[0])*100 + int(ver_str[2])*10 + int(ver_str[4])
+    ver_str_full = mpl.__version__
+    ver_str = ver_str_full.split('.')
+    ver_num = int(ver_str[0])*100 + int(ver_str[1])*10 + int(ver_str[2])
     return ver_num
 
 def CalcFreq(rcumode, subband):

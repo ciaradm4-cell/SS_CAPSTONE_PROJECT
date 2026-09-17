@@ -15,9 +15,9 @@ mode7caldata = <full path to the mode 7 calibration data file> (a string value)
 Variable names must be exactly as entered above. Typos will break the code!
 """
 
-antennafile='/Matlab/AntennaFields/IE613-AntennaField.conf'
-ihbadeltafile='/Matlab/iHBADeltas/IE613-iHBADeltas.conf'
-mode3caldata = '/Matlab/caltables/data/CalTable-613-LBA_INNER-10_90.dat'
-mode5caldata = '/Matlab/caltables/data/CalTable-613-HBA-110_190.dat'
-mode7caldata = '/Matlab/caltables/data/CalTable-613-HBA-210_250.dat'
+antennafile='/Users/ciaradeasymillar/SS_CAPSTONE/Scripts/Python/AllSky/Matlab/AntennaFields/IE613-AntennaField.conf'
+ihbadeltafile='/Users/ciaradeasymillar/SS_CAPSTONE/Scripts/Python/AllSky/Matlab/iHBADeltas/IE613-iHBADeltas.conf'
+mode3caldata = '/Users/ciaradeasymillar/SS_CAPSTONE/Scripts/Python/AllSky/Matlab/caltables/data/CalTable-613-LBA_INNER-10_90.dat'
+mode5caldata = '/Users/ciaradeasymillar/SS_CAPSTONE/Scripts/Python/AllSky/Matlab/caltables/data/CalTable-613-HBA-110_190.dat'
+mode7caldata = '/Users/ciaradeasymillar/SS_CAPSTONE/Scripts/Python/AllSky/Matlab/caltables/data/CalTable-613-HBA-210_250.dat'
 
