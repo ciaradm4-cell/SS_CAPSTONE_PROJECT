@@ -107,7 +107,7 @@ def process_path( datafile )  : #converts '\' to '/' in paths pasted in from win
     #datafile=os.path.normpath( datafile )
     return datafile
 
-def main( datafile, data, rcumode, polarity, logplot, pixels, ol_col, grid_thick, back_color, fore_color, save_image, multiple_files, radial_label_angle, color_bar, obs_site ):
+def main( datafile, data, rcumode, polarity, logplot, pixels, ol_col, grid_thick, back_color, fore_color, save_image, multiple_files, radial_label_angle, color_bar, obs_site, int_time ):
 
     global px
     px = pixels
@@ -129,10 +129,29 @@ def main( datafile, data, rcumode, polarity, logplot, pixels, ol_col, grid_thick
         print (data.shape)
         rawdata = data
         subband = datafile[ datafile.find( '_sb' ) + 3 : datafile.find( '_', datafile.find( '_sb' ) + 3 ) ]
+        print(subband)
+    
     stdate = datafile.find('_sb');
     filedate = datafile[ stdate - 15 : stdate - 11 ] + '-' + datafile[ stdate - 11 : stdate - 9 ] + '-' + datafile[ stdate - 9 : stdate - 7 ];
-    filetime = datafile[ stdate - 6 : stdate - 4 ] + ':' + datafile[ stdate - 4 : stdate - 2 ] + ':' + datafile[ stdate - 2 : stdate ];
+
+    if '_xst_' in datafile:
+        im_num = int(datafile.split('_xst_')[-1].replace('.dat', '')) - 1
+        filetime = datafile[stdate-6:stdate-4] + ':' + datafile[stdate-4:stdate-2] + ':' + datafile[stdate-2:stdate]
+        obstime = Time(filedate + ' ' + filetime) + im_num * int_time * u.s
+    else:
+        filetime = datafile[stdate-6:stdate-4] + ':' + datafile[stdate-4:stdate-2] + ':' + datafile[stdate-2:stdate]
+        obstime = Time(filedate + ' ' + filetime)
+    # trying to fix obs time issue
+
+    '''
+    if datafile == '*xst_*.dat':
+        im_num = datafile.split('_')[-1].replace('.dat', '')
+        filetime = datafile[ stdate - 6 : stdate - 4 ] + ':' + datafile[ stdate - 4 : stdate - 2 ] + ':' + (datafile[ stdate - 2 : stdate ] + (im_num * int_time)); # need to figure out how to deal w this if it spills over a minute
+    else:
+        filetime = datafile[ stdate - 6 : stdate - 4 ] + ':' + datafile[ stdate - 4 : stdate - 2 ] + ':' + datafile[ stdate - 2 : stdate ];
     obstime=Time( filedate + ' ' + filetime )
+    '''
+    print(obstime)
     freq = CalcFreq( int( rcumode ), int( subband ) )
     Object1Name = "Cas A"
     Object2Name = "Cyg A"
@@ -281,6 +300,7 @@ if __name__ == '__main__':
         help = 'option -i saves a processed image in the data folder')
     o.add_option('-l', '--logplot', action='store_true', default=False, dest='logplot',
         help = 'option -l produces a log plot of the lofar xst data')
+    o.add_option('-e', '--int_time', default=False, dest='int_time', help='option -e gives the exposure/integration time (needed for xst files with multiple observations embedded)')
     opts, args = o.parse_args( sys.argv[1:] )
 
     datafile = process_path( args[0] ) #you CAN run this in standalone mode with a suitably prepared matrix file.
@@ -289,6 +309,7 @@ if __name__ == '__main__':
     pixels = float( opts.pixels )
     save_image = opts.save_image
     color_bar = opts.color_bar
+    int_time = float(opts.int_time) if opts.int_time else 0 # help got for this bug 
     ol_col = opts.ol_col
     back_color = opts.back_color
     fore_color = opts.fore_color

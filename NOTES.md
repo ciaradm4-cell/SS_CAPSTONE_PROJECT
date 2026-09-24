@@ -19,4 +19,29 @@
 - Have changed this so that now it splits the [3, 11, 1] based on '.' with .split
 
 
+### --- THURS 17/09 --- ###
 
+## process_files()
+- Takes datasource from the command line and globs over all of the xst files within the folder. It counts how many there are to be processed.
+
+## save2csv()
+- Saves each xst file as a csv file. 
+- datafile is one of these filenames. If the datasource is a dir, the CreatAllSky runs for datafile in filenames.
+
+
+### --- MON 21/09 --- 
+
+## acm2skyimage()
+- antenna correlation matrix -> sky image 
+- skymap is a map of the power. calculates beamformed power and assigns it to a pixel by taking the amplitude of the voltage squared averaed over time which is the power?
+
+## CreateAllSky()
+- sets up the all-sky image by making a field and masking outside the circle that represents the horizon
+- uses station rotation and calls acm2skyimage() to get the skymap
+- separates by X and Y polarisation
+- also calls PlotAllSky.main for te actual plotting
+
+## parseiHBAField()
+- reads the antenna positions from the LOFAR config files
+- applies the relevant offsets and identifies the array configuration before extracting the station's geographic posiyion to get a rotation matrix out
+- this function reads antennafield.conf and iHBADeltas.conf which is the element offset info and it combines them to get the antenna coords

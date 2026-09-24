@@ -54,8 +54,42 @@ import sys
 from pathlib import Path
 import PlotAllSky
 import SkyMultiMap_vars as ext_vars
+from filesplit.split import Split 
+import os
+
+# splits an xst file that contains more than one image up into a directory containing the individual image files for processing 
+def split_file(datasource):
+
+    #output_dir = datasource.split('/')
+    #output_dir = f'{output_dir[0]}/{output_dir[1]}/{output_dir[2]}/{output_dir[3]}/{output_dir[-1]}/splitdata/' # need to fix this to make it more accessible rather than something that works on just my mac
+    #output_dir = f'splitdata/{datasource}'
+    output_dir = os.path.join(os.path.dirname(datasource), 'splitdata') + '/'
+
+    if not os.path.exists(output_dir): 
+       os.makedirs(output_dir) # make the directory if it doesnt exits 
+
+    split = Split(inputfile= datasource, outputdir= output_dir) # splits the file up by size seems to work well siince size is consistent 
+    split.bysize(size=589824)
+
+    datasource = output_dir # now the datasource is the new directory of split files so the format holds from og code
+
+    return datasource
 
 def process_path(datasource)  : #converts '\' to '/' in paths pasted in from windows PCs
+
+    # checks size of file
+    file_size = os.path.getsize(datasource)
+    print(file_size)
+
+    # if its bigger than this then it containes more than one image so we need to split it up
+    if file_size > 589824:
+       print(f'datasource is one xst file with multiple images, size {file_size} bytes')
+       datasource = split_file(datasource)
+       print(datasource)
+    else:
+       datasource = datasource 
+
+
     if Path(datasource).is_dir() or Path(datasource).is_file():
       datasource=re.sub(r"\ddd", "/ddd", datasource) # just in case you have a '/nnn' in the string which might be interpeted as an escape sequence
       #datafile=re.sub(r"\\", "/", datafile)
@@ -66,7 +100,11 @@ def process_path(datasource)  : #converts '\' to '/' in paths pasted in from win
       sys.exit()
 
 def process_files(datasource):
-    filenames=glob.glob(datasource + '*xst.dat')
+    #filenames=glob.glob(datasource + '*xst.dat')
+    #filenames = glob.glob(datasource + '*xst_*.dat')
+    filenames = glob.glob(datasource + '*xst[_.]*dat') # now this works for both types of directories (those from an actual directory and those from directories made from splitting an xst file)
+    #print(filenames)
+    filenames.sort()
     print (str(len(filenames)) + ' xst data files to be processed....')
     return filenames
 
@@ -153,8 +191,7 @@ def readCalTable(calfile):
   fid.close()
   Nrcu = len(data) / (2 * 512)
   comp=data[0::2] + 1j * data[1::2]
-  cal = np.reshape(comp, (int(Nrcu), 512), order='F')
-  calx = cal[0::2]
+  cal = np.reshape(comp, (int(Nrcu), 512), order='F') 
   caly = cal[1::2]
   return calx, caly, header
 
@@ -353,7 +390,7 @@ def acm2skyimage(acm, xpos, ypos, freq, lo, m):
 
   [nelem, dummy] = np.shape(acm)
   nchannel = 1 #(its always one)
-  c = 2.9979245e8
+  c  = 2.9979245e8
 
   skymap = np.zeros((len(l), len(m)))#, nchannel)
 
@@ -370,14 +407,15 @@ def acm2skyimage(acm, xpos, ypos, freq, lo, m):
         skymap[lidx,midx] = np.real(np.real(np.matrix(weight).H * np.matrix(acm[:, :]) * np.matrix(weight) ))[0,0]
   return skymap
 
-def CreateAllSky( datafile, mulitple_files, rcumode, calx, caly, xpos, ypos, freq, l, m, process_x, process_y, ol_col, grid_thick, save_image, back_color, fore_color ):
+def CreateAllSky( datafile, mulitple_files, rcumode, calx, caly, xpos, ypos, freq, l, m, process_x, process_y, ol_col, grid_thick, save_image, back_color, fore_color, int_time ):
     print (datafile)
     subband=int(datafile[datafile.find('_sb')+3:datafile.find('_',datafile.find('_sb')+3)]) #get the subband from the filename
-    fid = open(datafile, 'r')
+    fid = open(datafile, 'r') # probably need to add the split just before this can define datafile to be for imagefile in datafile do the rest 
+    # maybe need an if statement to say if datafile is greater than the standard 589,824 bytes then call the split function and then run the code for each spliut image
     data=np.fromfile(fid, dtype=np.float64)
     fid.close()
-    comp=data[0::2] + 1j * data[1::2]
-    acc = np.reshape(comp, (192, 192),order='F')
+    comp=data[0::2] + 1j * data[1::2] # reconstructed data as complex numbers since alternating real and im
+    acc = np.reshape(comp, (192, 192),order='F') # reshaping into 192x192 complex matrix.  
     frequency, freqoff = CalcFreq(int(rcumode), int(subband))
 
     #create a mask for the all sky image
@@ -392,7 +430,7 @@ def CreateAllSky( datafile, mulitple_files, rcumode, calx, caly, xpos, ypos, fre
       skymap=np.flipud(skymap)
       skymap=ndimage.rotate(skymap, station_rotation, mode='constant',cval=100, reshape=False)*mask
       polarity = 'X'
-      PlotAllSky.main(datafile, skymap, rcumode, polarity, logplot, pixels, ol_col, grid_thick, back_color, fore_color, save_image, multiple_files, radial_label_angle, color_bar,  'IE613 (Birr)')
+      PlotAllSky.main(datafile, skymap, rcumode, polarity, logplot, pixels, ol_col, grid_thick, back_color, fore_color, save_image, multiple_files, radial_label_angle, color_bar,  'IE613 (Birr)', int_time)
     if process_y == True:
       acccal = np.conj(np.outer(np.matrix(caly[:,subband]), np.matrix(caly[:,subband]).H ))* acc[1::2, 1::2]
       skymap = acm2skyimage(acccal, xpos, ypos, freq[subband-1] + freqoff, l, m)
@@ -400,7 +438,7 @@ def CreateAllSky( datafile, mulitple_files, rcumode, calx, caly, xpos, ypos, fre
       skymap=np.flipud(skymap)
       skymap=ndimage.rotate(skymap, station_rotation, mode='constant',cval=100, reshape=False)*mask
       polarity = 'Y'
-      PlotAllSky.main(datafile, skymap, rcumode, polarity, logplot, pixels, ol_col, grid_thick, back_color, fore_color, save_image, multiple_files, radial_label_angle, color_bar, 'IE613 (Birr)')
+      PlotAllSky.main(datafile, skymap, rcumode, polarity, logplot, pixels, ol_col, grid_thick, back_color, fore_color, save_image, multiple_files, radial_label_angle, color_bar, 'IE613 (Birr)', int_time)
 
 ###################################################################################################################
 #End of function defines
@@ -439,6 +477,7 @@ if __name__ == '__main__':
         help = 'option -c if true, uses calibration data from the specified calibration file for a given rcu mode, default is False.')
     o.add_option('-l', '--logplot', action='store_true', default=False, dest='logplot',
         help = 'option -l produces a log plot of the lofar xst data.')
+    o.add_option('-e', '--int_time', default=False, dest='int_time', help='option -e gives the exposure/integration time (needed for xst files with multiple observations embedded)')
     opts, args = o.parse_args()#sys.argv[0:])
 
 if args:
@@ -451,6 +490,7 @@ rcumode = int(opts.rcumode) # you must specify the rcu mode
 logplot = opts.logplot
 save_image = opts.save_image #if true, then save an image with the same file root as the original filename
 radial_label_angle = float( opts.radial_label_angle ) #the angle for radial ticks on the resultant plot
+int_time = float(opts.int_time) if opts.int_time else 0
 color_bar = True
 ol_col = opts.ol_col
 back_color = opts.back_color
@@ -520,7 +560,7 @@ if Path(datasource).is_dir():
     filenames = process_files(datasource)
     multiple_files = True #process all files in the folder
     for datafile in filenames:
-        CreateAllSky( datafile, multiple_files, rcumode, calx, caly, xpos, ypos, freq, l, m, process_x, process_y, ol_col, grid_thick, save_image, back_color, fore_color )
+        CreateAllSky( datafile, multiple_files, rcumode, calx, caly, xpos, ypos, freq, l, m, process_x, process_y, ol_col, grid_thick, save_image, back_color, fore_color, int_time )
 else:
     multiple_files = False  #process only the file given
-    CreateAllSky( datasource, multiple_files, rcumode, calx, caly, xpos, ypos, freq, l, m, process_x, process_y, ol_col, grid_thick, save_image, back_color, fore_color )
+    CreateAllSky( datasource, multiple_files, rcumode, calx, caly, xpos, ypos, freq, l, m, process_x, process_y, ol_col, grid_thick, save_image, back_color, fore_color, int_time )
