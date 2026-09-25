@@ -65,7 +65,11 @@ def split_file(datasource):
     #output_dir = datasource.split('/')
     #output_dir = f'{output_dir[0]}/{output_dir[1]}/{output_dir[2]}/{output_dir[3]}/{output_dir[-1]}/splitdata/' # need to fix this to make it more accessible rather than something that works on just my mac
     #output_dir = f'splitdata/{datasource}'
-    output_dir = os.path.join(os.path.dirname(datasource), 'splitdata') + '/'
+
+    filename = os.path.basename(datasource)
+    subfolder = "_".join(filename.split("_")[:2])  # date_time
+
+    output_dir = os.path.join(os.path.dirname(datasource), 'splitdata', subfolder) + '/'
 
     if not os.path.exists(output_dir): 
        os.makedirs(output_dir) # make the directory if it doesnt exits 
