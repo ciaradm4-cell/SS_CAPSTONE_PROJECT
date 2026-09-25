@@ -86,6 +86,7 @@ def process_path(datasource)  : #converts '\' to '/' in paths pasted in from win
     # if its bigger than this then it containes more than one image so we need to split it up
     if file_size > 589824:
        print(f'datasource is one xst file with multiple images, size {file_size} bytes')
+       print('Caution: for accurate image timestamps, provide exposure/integration time argument -e!')
        datasource = split_file(datasource)
        print(datasource)
     else:
@@ -107,8 +108,14 @@ def process_files(datasource):
     filenames = glob.glob(datasource + '*xst[_.]*dat') # now this works for both types of directories (those from an actual directory and those from directories made from splitting an xst file)
     #print(filenames)
     filenames.sort()
-    print (str(len(filenames)) + ' xst data files to be processed....')
-    return filenames
+    num_files = len(filenames)
+    print (str(num_files) + ' xst data files to be processed....')
+
+    if num_files == 0:
+       print('Glob failed')
+       print('If you are working with a directory, you must add a trailing / at the end of the path on the command line')
+    else:   
+        return filenames
 
 def save2csv( filename, array):
     df=pd.DataFrame(array)
