@@ -3,6 +3,8 @@
 Created on Mon Nov 13 15:10:53 2017
 
 @author: Joe McCauley (joe.mccauley@tcd.ie)
+Updates:
+24/09/2026 by Ciara Deasy-Millar (deasymic@tcd.ie) to read images in xst files which contain multiple images
 Originally written for Python 2.7
 Upgraded for Python 3.8 April 2021
 Based on a translated matlab script originally from ASTRON for processing

@@ -3,6 +3,7 @@
 Created on Sat Dec 02 09:53:39 2017
 
 @author: Joe McCauley (joe.mccauley@tcd.ie)
+24/09/2026 by Ciara Deasy-Millar (deasymic@tcd.ie) to read images in xst files which contain multiple images
 Originally written for Python 2.7
 Upgraded for Python 3.8 April 2021
 uses matplotlib v2.0.2 or 2.1.1, NOT 2.1.0
